@@ -27,6 +27,7 @@ import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Message;
+import android.net.Uri;
 
 import com.resurrection.ota.MainActivity;
 import com.resurrection.ota.R;
@@ -36,6 +37,7 @@ import com.resurrection.ota.configs.OTAConfig;
 import com.resurrection.ota.configs.OTAVersion;
 import com.resurrection.ota.dialogs.WaitDialogHandler;
 import com.resurrection.ota.utils.OTAUtils;
+import com.resurrection.ota.xml.OTALink;
 import com.resurrection.ota.xml.OTADevice;
 import com.resurrection.ota.xml.OTAParser;
 
@@ -46,6 +48,7 @@ import java.io.InputStream;
 
 public class CheckUpdateTask extends AsyncTask<Context, Void, OTADevice> {
 
+    private static final String KEY = "rom";
     private static CheckUpdateTask mInstance = null;
     private final Handler mHandler = new WaitDialogHandler();
     private Context mContext;
@@ -102,12 +105,12 @@ public class CheckUpdateTask extends AsyncTask<Context, Void, OTADevice> {
             String latestVersion = device.getLatestVersion();
             boolean updateAvailable = OTAVersion.checkServerVersion(latestVersion, mContext);
             if (updateAvailable) {
+                AppConfig.persistLatestVersion(latestVersion, mContext);
+                LinkConfig.persistLinks(device.getLinks(), mContext);
                 showNotification(mContext);
             } else {
                 showToast(R.string.no_update_available);
             }
-            AppConfig.persistLatestVersion(latestVersion, mContext);
-            LinkConfig.persistLinks(device.getLinks(), mContext);
         }
 
         AppConfig.persistLastCheck(mContext);
@@ -157,8 +160,14 @@ public class CheckUpdateTask extends AsyncTask<Context, Void, OTADevice> {
         builder.setSmallIcon(R.drawable.ic_notification_slimota);
         builder.setLargeIcon(BitmapFactory.decodeResource(context.getResources(), R.drawable.ic_slimota));
 
-        Intent intent = new Intent(context, MainActivity.class);
+        OTALink link = LinkConfig.getInstance().findLink(KEY, context);
+
+        String otaUrl = link.getUrl();
+
+        Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.setData(Uri.parse(otaUrl));
+
         final PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent,
                 PendingIntent.FLAG_ONE_SHOT);
         builder.setContentIntent(pendingIntent);
