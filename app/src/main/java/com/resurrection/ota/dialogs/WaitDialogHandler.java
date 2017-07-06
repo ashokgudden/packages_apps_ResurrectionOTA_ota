@@ -52,9 +52,12 @@ public class WaitDialogHandler extends Handler {
                 }
                 break;
             case MSG_CLOSE_DIALOG:
-                WaitDialogFragment dialog = getOTADialogFragment();
-                if (dialog != null) {
-                    dialog.dismissAllowingStateLoss();
+                Activity cActivity = (Activity) mContext;
+                if (!cActivity.isFinishing()) {
+                    WaitDialogFragment dialog = getOTADialogFragment();
+                    if (dialog != null) {
+                        dialog.dismissAllowingStateLoss();
+                    }
                 }
                 break;
             default:
