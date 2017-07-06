@@ -32,6 +32,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.SocketTimeoutException;
 import java.util.Properties;
 
 public final class OTAUtils {
@@ -100,6 +101,7 @@ public final class OTAUtils {
     }
 
     public static InputStream downloadURL(String link) throws IOException {
+
         URL url = new URL(link);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setReadTimeout(10000);
@@ -107,7 +109,11 @@ public final class OTAUtils {
         conn.setRequestMethod("GET");
         conn.setDoInput(true);
         conn.connect();
-        logInfo("downloadStatus: " + conn.getResponseCode());
+        try {
+        	logInfo("downloadStatus: " + conn.getResponseCode());
+	} catch (SocketTimeoutException e) {
+		logInfo("Connection timed out...let's try again");
+	}
         return conn.getInputStream();
     }
 
