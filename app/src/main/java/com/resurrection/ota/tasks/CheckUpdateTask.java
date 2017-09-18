@@ -109,6 +109,8 @@ public class CheckUpdateTask extends AsyncTask<Context, Void, OTADevice> {
                 LinkConfig.persistLinks(device.getLinks(), mContext);
                 showNotification(mContext);
             } else {
+                AppConfig.persistLatestVersion(latestVersion, mContext);
+                LinkConfig.persistLinks(device.getLinks(), mContext);
                 showToast(R.string.no_update_available);
             }
         }
